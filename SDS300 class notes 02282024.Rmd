@@ -1,0 +1,33 @@
+---
+title: "02282024 Notes"
+author: "Danielle"
+date: "2024-02-28"
+output: html_document
+---
+
+IDH - intermediate disturbance hypothesis
+- should be parabola (diversity of species on y and grazers on x)
+  - x = grazers = causing disturbance 
+  - we want to know grazer counts + algal diversity of species (# of unique species)
+  - code example for grazer example in lab 2:
+idh_plot_div_abun <- ggplot(gzcount_algdiv, aes(x = total_grazer_count, y = total_algal_diversity, color = factor(tidal_ht_cat_num))) +
+  geom_point() +
+  geom_line(color = "black") +
+  labs(x = "Grazer Abundance", y = "Algal Diversity") +
+  ggtitle("Algal Diversity in Response to Grazer Abundance") +
+  theme_classic() + 
+  scale_y_continuous(breaks = seq(0, max(gzcount_algdiv$total_algal_diversity), 1)) 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
