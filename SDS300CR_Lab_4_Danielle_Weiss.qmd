@@ -1,0 +1,252 @@
+---
+title: "SDS300CR lab 4: mixed models and model selection"
+author: "Danielle Weiss"
+format:
+  html:
+    embed-resources: true
+    toc: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    self-contained: true
+editor: source
+---
+
+```{r}
+#| warning: false
+library(tidyverse)
+library(parameters)
+library(performance) #for model testing
+library(broom) #contains augment
+library(car) #to check colinearity
+library(patchwork) #multiple graphs on same output
+library(ggeffects) #to get modeled means out for plotting
+library(ggridges) #for cool histograms
+library(lme4) # for mixed effects modeling
+```
+
+**Some really helpful tutorials for understanding this lab**
+[my tutorial](https://jbaumann3.github.io/intro_r_for_bio_eco/multiple_regression.html)
+[Our Coding Club](https://ourcodingclub.github.io/tutorials/mixed-models/)
+[ggridges](https://cran.r-project.org/web/packages/ggridges/vignettes/introduction.html)
+
+# 1.) Get the data. We will use coral recovery/resistance [data](https://raw.githubusercontent.com/jbaumann3/Baumann-et-al-coral-recovery-/main/data/coral_recov_master_2021.csv) from my 2021 publication from github for this lab.
+- data from different sources 
+- 75 variables 
+- each row = reef site exposed to disturbance + recovered from it (coral cover) 
+- hoe much it lost / how fast can it go back to baseline 
+- correlation = can't use model 
+- collinearity = need to drop something from model 
+- how recovery comes back over time after disturbance 
+
+There are A LOT of variables here. We are interested in **calculated.recovery.rate** at the response variable. This is a rate in % coral cover per year (%/yr) that a reef recovers after a disturbance event. Disturbance events are acute events (like a storm) that cause the coral cover to drop. A reef is considered more resilient if it recovers coral cover faster. So higher % cover is good, lower is not as good. \
+\
+
+We are interested in the following explanatory variables:\
+1. region (what ocean basin is the coral from?)\
+2. disturbance (type of disturbance that occurred)\
+3. pre.dist.cc (the coral cover at the site before the disturbance in %) \
+4. recovery_time (time in years over which recovery rate is measured) \
+5. hii100km (the human influence index in a 100km radius of the site) \
+6. distance_to_shore_m (the distance to the nearest major shoreline in meters) \
+7. dist_to_riv_m (the distance to the nearest major river mount in meters) \
+8. grav_NC (market gravity - proximity to fish market. This is actually the number of people within a 5km range of the reef) \
+9. cml_scr (cumulative WCS score-- a cumulative measure of human influence - similar to HII, but updated to be reef specific) \
+10. study (the published paper that these data came from)
+
+## a.) Read in the data, check shape and size, and keep only the columns listed above. If YOU are interested in another column or group of columns you can keep them as well. 
+
+```{r}
+#read data in here. Check df shape and size. 
+coral_recovery <- read_csv("https://raw.githubusercontent.com/jbaumann3/Baumann-et-al-coral-recovery-/main/data/coral_recov_master_2021.csv")
+
+coral_recovery
+
+# select columns
+coral_recov <- select(coral_recovery, c('region', 'disturbance', 'pre.dist.cc', 'recovery_time', 'hii100km', 'distance_to_shore_m', 'dist_to_riv_m', 'grav_NC', 'cml_scr', 'study'))
+head(coral_recov)
+
+# lmcheck <- lm(calculated.recovery.rate ~ surface_area, data = sa_buoyant_coral)
+
+
+```
+## b.) For each of our numerical explanatory variables, we need to center and scale them so that we standardize them. This is a good practice for complex model building! Center will make the data normal and scale will change the distribution to make sd=1. Use these scaled data for your models!
+```{r}
+#example: df$colname<-scale(df$colname, center=TRUE, scale=TRUE)
+#You CAN make a new column if you want to retain the original unscaled data!
+
+
+```
+
+
+\
+# 2.) We are very curious if coral recovery rate varies across ocean basin/region. Let's have a quick look! Make a scatterplot of recovery rate by region, if n<3 in a region, remove it. Next, make a single plot (use the ggridges package!) that shows histograms of recovery rate by region. Use patchwork to place these two graphs in the same output below.
+
+```{r}
+#prelim scatter
+
+#filter step
+
+#final scatter
+#histo
+
+#patchwork 
+```
+\
+# 3.) Now, do the same for disturbance (or type of disturbance). If n\<3, remove those rows/disturbances. Then remake the scatterplot and make a set of histrograms. Use patchwork to put the two graps in the same output below.
+
+```{r}
+#prelim scatter
+
+#filter step
+
+#final scatter
+#histo
+
+#patchwork 
+```
+
+# **4**: Our research question is-- "Do local impacts effect the recovery rate of coral reefs on a global scale?" Let's build some models to try to address this question. \
+
+## a.) Does hii100km effect calculate recovery rate? Assess with an lm and a graph! Report your results.
+
+```{r}
+
+```
+**My response**
+\
+\
+## b.) Does cml_scr effect calculated recovery rate? Assess with an lm and a graph. Report your results. 
+```{r}
+
+
+```
+**my response**
+\
+
+# 5.) We are really interested in more complex relationships. So, using the variables we have chosen do the following: 
+
+
+## a.) Using a bottom-up model building structure, generate mixed effects (lmer()) models (using the lme4 pacakge) that explore the effects of the above variables on calculated recovery rate. Start with a calculated recovery rate ~ hii100km and add terms until the model starts to have singular fits. Be sure to check assumptions and for singular fit when you run each model. 
+\
+We will test the following assumptions: \
+1. multicollinearity - essentially tests whether 2 variables are highly correlated. If they are, we struggle to determine which one is actually effecting the model. When this happens we have to make the model less complex or possibly remove a variable. We test this with check_collinearity(model_name)
+\
+2. Outliers - too many outliers will mess with our model! We can use check_outliers(model_name) for this. If we have outliers, we at least need to make a note of them. 
+\
+3. A comprehensive model check for all assumptions (normality of residuals, homogeneity of variance, outliers, collinearity). We use check_model(model_name) from the performance package for this. \
+\
+**IF** a model has a singular fit or fails the collinearity assumption, we cannot use it. You either have too complex a model or variables that are collinear. You can always regress variables or use a correlation plot to see if you have collinear variables. 
+\
+**ALL lmer models** MUST have a randome effect. We will use study as our random effect. You add this to the model by doing adding + (1|study) in the model.
+
+**While doing model testing** we must use the option REML=FALSE in the model. REML is reduced maximum likelihood. We will change REML to TRUE once we select a final model. \
+Fixed vs. Random effects: Fixed don't vary across groups or the effect is 'fixed'. Random = account for vars that differ between individuals. Also something that is a covariate that you aren't expecting to be part of the design / didn't plan for. \
+
+
+```{r}
+#model 1 should be lmer1<-lmer(y~x + (1|study), data=df, REML=FALSE)
+
+# model + check colinearity 
+# try * and change to # if it is not working + violating assumptions
+lmer1 <- lmer(calculated.recovery.rate ~ region + disturbance + hii100km + (1|study), data = coral_recovery)
+
+summary(lmer1)
+
+check_collinearity(lmer1)
+
+# VIF < 2 = good 
+# VIF > 10 = colinearity 
+# VIF > 5 = likely problematic
+
+check_model(lmer1)
+#model 2 should be y*x
+
+#model 3 should be y*x*z
+
+#model 4 should be y
+
+
+
+```
+
+## b.) Check the performance of ALL of the models that did not result in an error (a singular fit) to see which one is the best fit for the data. We can use the compare_performance() function from the performance package for this. The syntax is compare_performance(lm1,lm2,lm3, rank=TRUE). This rank=True will put the 'best' model at the top. 
+Compare performance will print some combination of the following metrics: \
+1. R2 and R2 adjusted - this is a great metric that we already understand (goodness of fit!) \
+2. RMSE - root mean squared error (smaller is generally better)
+3. AIC, BIC are both criterion for model selection-> smaller is better. If the column says AIC weights, BIC weights, or AICc weights, then bigger is better!
+4. ICC is Intraclass correlation coefficient - "the proportion of the variance explained by the grouping structure in the population" (Hox 2010)
+5. BF is bayes factor (not sure it is relevant)
+6. Finally- we often get a Performance-Score, which is an estimated goodness of fit value from the package. This is NOT ALWAYS the best way to choose a model. BUT, it often tells us at least which model is the best fit (statistically). Notably, stats are a tool-- if the model doesn't address our hypothesis, we will often not use the "best" model. 
+
+```{r}
+#compare model performance
+
+
+```
+**my best fitting model is**
+
+Now, add REML=TRUE to your best model and compare it to the same model with REML=FALSE. Notice any difference?
+```{r}
+
+
+```
+
+
+## c.) Make a 95% CI coefficients table for your model. Tell me which of your model parameters/variables have positive/negative effects. Examples of this kind of plot can be found [here](https://jbaumann3.github.io/intro_r_for_bio_eco/multiple_regression.html)
+```{r}
+*** look at notes for this, code provided will not work 
+```
+
+
+## d.) Make plots to assess the effect of your explanatory variables. You will need to extract the model fits for each var and plot!
+This requires ggpredict() from the ggeffects package! ggpredict produces 95% CI from the model! This is really useful for visual assessment of results. 
+\
+Some example code: 
+```{r}
+#run the linear model
+#finalmodel2<-lmer(y~x*z*a)
+# Extract the prediction data frame
+# pred.hii <- ggpredict(finalmodel2, terms = c("hii100km2"))  # this gives overall predictions for the model
+# pred.hii
+# 
+# # Plot the predictions 
+# ggpredhii<-ggplot(pred.hii) + 
+#   geom_ribbon(aes(x = x, ymin = conf.low, ymax = conf.high), 
+#               fill = "lightgrey", alpha = 0.3) +  # error band
+#   geom_point(data = recov,                      # adding the raw data (scaled values)
+#              aes(x = hii100km2, y = calculated.recovery.rate),alpha=0.5) +
+#   geom_line(aes(x = x, y = predicted),size=1, color='black') +          # slope
+#   theme_bw()+
+#   labs(x = "Scaled Human Influence Index", y = "Recovery Rate")
+
+
+## AND A CATEGORICAL VAR
+###REGION
+# pred.region <- ggpredict(finalmodel2, terms = c("region"))  # this gives overall predictions for the model
+# summary(pred.region)
+# pred.region
+# pred.region$x<-factor(pred.region$x, levels= c("Caribbean","Indian Ocean", "W. Pacific", "E. Pacific"))
+# 
+# ggpredreg<-ggplot(pred.region) + 
+#   geom_point(data=recov, aes(x=region, y= calculated.recovery.rate), color='grey', alpha=0.3)+
+#   geom_point(aes(x = x, y = predicted, colour = x),size=3) +
+#   geom_errorbar(aes(x=x, ymin=conf.low, ymax=conf.high, color=x),width=0.5)+
+#   #geom_errorbar(aes(x=x, ymin=predicted-std.error, ymax=predicted+std.error),width=0.3)+
+#   theme_bw()+
+#   labs(x = "Region", y = "Recovery Rate")
+```
+\
+**YOU TRY** - Do this for a least 1 numerical and 1 categorical explanatory variable. Interpret your results based on your model summary table, coefficient plot, and these graphs. What do you see?
+```{r}
+
+
+```
+
+**My interpretation**
+
+\
+\
+# Render the lab and turn it in :)
+

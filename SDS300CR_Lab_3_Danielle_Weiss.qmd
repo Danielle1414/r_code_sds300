@@ -1,0 +1,326 @@
+---
+title: "SDS300CR_Lab_3_Danielle_Weiss"
+author: "Danielle Weiss"
+format:
+  html:
+    embed-resources: true
+    toc: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    self-contained: true
+editor: source
+editor_options: 
+  chunk_output_type: inline
+---
+
+# **Step 0:** Load all packages we need to run this entire .qmd
+
+```{r, warning=FALSE}
+library(dplyr)
+library(tidyverse) 
+library(ggplot2) # plots
+library(ggsci) # colors
+library(palmerpenguins) # penguins data
+library(performance) # stat + model assumptions [check_model]
+# library(rstatix) #test for outliers, welch_anova_test
+library(lubridate) # data and time
+library(broom)
+```
+
+# **Read in Data**
+
+Today we will use data from a study I published in 2021. [The data](https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/blob/main/rt_master_data.csv) are on github. Read this in as a csv and use it for the lab!
+
+```{r}
+# read in github data csv - RAW DATA
+coral_belize_data <- read_csv("https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/raw/main/rt_master_data.csv")
+
+# check loaded data
+head(coral_belize_data)
+```
+
+# **Question 1:** a simple data trick
+
+We are interested in coral surface area and we have a column called surface area (with the space). R kind of hates spaces. We CAN just call the variable `surface area` all the time and it will work. OR we could rename the column or make a new column. Pick your favorite solution--> Do something to the dataframe that eliminates the need for us to use backticks (\``) around`surface area\`. In other words-- remove that space somehow.
+
+```{r}
+# remove space from 'surface area'
+coral_belize_data2 <- coral_belize_data %>%
+  rename(surface_area = 'surface area')
+
+# make sure it is renamed
+coral_belize_data2
+```
+
+# **Question 2:** Simple lm()
+
+The data above are relatively complex. There is A LOT going on, as is typical of large datasets. For now, what you need to know is that these are coral data from Belize. We did an experiment in which corals were collected, cut into smaller fragments, and placed into one of 4 treatments (in the ocean). Corals were collected from a Nearshore Reef (False Caye) or Offshore Reef (Silk Caye), they were then either left in their home environment (nearshore native / offshore native) OR transplanted to the nearshore (nearshore transplant) or offshore (offshore transplant). MANY columns are not relevant for us, but BW, which stands for buoyant weight, represents the mass of each coral and the column 'surface area' represents the surface area of each coral.
+
+## a.) Test the following Ho (null hypothesis) using a simple linear regression. Make a companion graph that visualizes the result. Report a summary table of useful statistics and evaluate the hypothesis with a statement (do we reject or fail to reject H0 and why).
+
+**H0: There is no relationship between coral surface area and coral buoyant weight in SSID corals (you will need to filter so only have 1 species of coral)**
+
+```{r}
+# filter so only SSID is used 
+sa_buoyant_coral <- filter(coral_belize_data2, species == "SSID")
+
+# remove rows with missing values
+sa_buoyant_coral <- drop_na(sa_buoyant_coral)
+
+# check the filter and drop of na's
+sa_buoyant_coral
+
+# linear regression: response ~ explanatory
+sa_buoyant_coral_lm <- lm(bw ~ surface_area, data = sa_buoyant_coral)
+
+# summary table
+summary(sa_buoyant_coral_lm)
+# adjusted R-squared:  0.4291 
+# p-value of regression model: 1.511e-06
+# regression intercept: 7.5303 
+# slope: 0.8569
+
+# graph to view relationship 
+ggplot(sa_buoyant_coral, aes(x = surface_area, y = bw)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +  # add linear regression line + turned off se gray shading
+  labs(x = "Surface Area", y = "Buoyant Weight") +
+  theme_classic() 
+
+# check assumptions 
+check_model(sa_buoyant_coral_lm)
+# edges of data are a little different 
+# can ignore if large data + independence can't be violated 
+```
+
+**Do we reject H0? Why or why not- cite your graph and table**
+
+We reject the null hypothesis, and there is a relationship between coral surface area and coral buoyant weight in SSID corals. The surface_area coefficient has a p-value that is less than the 0.05 significance value (1.511e-06). The graph shows a trend between coral surface area and coral buoyant weight in SSID corals. There is a slope of 0.8569, and the data points are loosely surrounding the linear regression line with the trend of increased buoyant weight when surface area increases.
+
+# **Question 3**
+
+## a.) Very often, a single numerical relationship cannot explain trends in data. We can use multiple regression to explore more complex data, like these! Using multiple regression, test the following H0. Use a graph and table to support your conclusions.
+
+**H0: There is no effect of surface area or species on buoyant weight**
+
+```{r}
+# additive multiple regression evaluate (Y ~ x + z)
+# use augment() for additive models in ggplot
+
+# get raw data of all species
+coral_belize_data_2 <- read_csv("https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/raw/main/rt_master_data.csv")
+# check 
+coral_belize_data_2 # has SSID and PSTR 
+# adjust column name 
+coralz_belize_ <- coral_belize_data_2 %>%
+  rename(surface_area = 'surface area')
+# check 
+coralz_belize_ # has SSID and PSTR and surface_area is changed
+
+# remove rows with missing values
+coralz_belize_ <- drop_na(coralz_belize_)
+
+# additive multiple regression
+# 1 catagorical 
+add_bw <- lm(formula = bw ~ surface_area + species, data =coralz_belize_)
+
+# summary table
+summary(add_bw)
+tidy(add_bw)
+# looks at effects separately
+
+# graph
+add_bw_graph <- add_bw %>% 
+  augment() %>%
+  ggplot(aes(x = surface_area, y = bw, color = species))+
+  geom_point()+
+  geom_line(aes(y=.fitted))+
+  theme_classic()
+# view graph
+add_bw_graph
+# parallel lines indicate a constant slope, but intercepts differ
+# can compare bw to sa in each species 
+```
+
+**Do we reject or fail to reject H0 (There is no effect of surface area or species on buoyant weight)? What is significant and what is not? How do we know if there is a species effect? Use both the graph and the table to explain.** 
+
+We reject the null hypothesis, because it seems like there is an effect of surface area on buoyant weight, but there is no significant effect of species on buoyant weight. In the graph, parallel lines indicate a constant slope, but intercepts differ. There is a low p-value of < 2.2e-16 for this additive regression as a whole, meaning we should look into the individual effects of surface area and species on buoyant weight. For the relationship between just surface area and buoyant weight, there is a significant relationship seen by the p-value of 2.23e-16, and the fact that both the slope lines and species sample points increase as both surface area and buoyant weight increase. For the relationship between just species and buoyant weight, there is no significant relationship seen by the p-value of 0.113 and the fact that the two different plotted species seem to overlap with their range on the graph.
+
+## b.) The graph you have just made can also be used to assess the H0 that there is not difference in the relationship between surface area and buoyant weight by species --> This is an interactive multiple regression lm(y ~ x*Z) where question a is additive lm(y~x+z). What is the difference between the two? Is there a significant interaction (use stats table to show me) and how can I see this on the graph?
+
+```{r}
+# interactive multiple regression evaluate (Y ~ x * z)
+
+# get raw data of all species
+coral_belize_data_3 <- read_csv("https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/raw/main/rt_master_data.csv")
+# check 
+coral_belize_data_3 # has SSID and PSTR 
+# adjust column name 
+coralz_belize_2 <- coral_belize_data_3 %>%
+  rename(surface_area = 'surface area')
+# check 
+coralz_belize_2 # has SSID and PSTR and surface_area is changed
+
+# interactive multiple regression
+bw_int <- lm(formula = bw ~ surface_area * species, data = coralz_belize_2)
+
+# summary table
+summary(bw_int)
+tidy(bw_int)
+# s_a = effect of numerical 
+# intercept = base case model = regressing bw by SA + does alphabetical order
+# can't get effect of PSTR 
+# we see effect of SSID
+
+# graph
+bw_int2 <- bw_int %>% 
+  augment() %>%
+  ggplot(aes(x = surface_area, y = bw, color = species))+
+  geom_point()+
+  geom_line(aes(y=.fitted))+
+  theme_classic()
+# view graph
+bw_int2
+# non-parallel lines indicate different slopes, and intercepts differ
+# surface_area:speciesSSID is interaction effect 
+
+# additive multiple regression / interactive multiple regression
+bw_int2 / add_bw_graph
+# because of the interaction term the interactive multiple regression graph has different slopes for both species and the additive multiple regression has the same slopes for both species and both graphs have different y-intercepts for both species
+```
+**Question b is an interactive regression = lm(y ~ x * Z) where question a is an additive lm(y~x+z). What is the difference between the two? Is there a significant interaction and how can I see this on the graph?**
+
+The interactive regression results show a difference in slopes and intercepts, and the additive model results show matching slopes, but differing intercepts. There is a low p-value of < 2.2e-16 for this interactive regression as a whole, meaning we should look into the specific effects of surface area and species on buoyant weight. On this interactive regression, my graph showed me that there is a relationship between species and surface area on buoyant weight because of the overlap in species and data points surrounding the slope line. My data table shows me that on their own, both species (0.000116) and surface area (< 2e-16) have a significant effect on buoyant weight, but combined surface area and species do not have a significant effect on buoyant weight with a p-value of 0.187925. 
+
+
+## c.) Run an ANOVA (aov) that matches your interactive lm() from b. Compare the results of the aov to the results of the lm. What do you notice? Next, try to run a TukeyHSD() on the anova. Why doesn't that work?
+
+
+```{r}
+# 3b interactive regression
+bw_int <- lm(formula = bw ~ surface_area * species, data = coralz_belize_2)
+summary(bw_int)
+
+# ANOVA to match lm() bw_int
+aov_ <- aov(formula = bw ~ surface_area * species, data = coralz_belize_2)
+summary(aov_)
+
+# TukeyHSD post-hoc test 
+# TukeyHSD(aov_)
+```
+**Compare the results of the aov to the results of the lm. What do you notice? Next, try to run a TukeyHSD() on the anova. Why doesn't that work?**
+
+The ANOVA (surface area p = <2e-16 | species p = 6.83e-10) and interactive regression (surface area p = <2e-16 | species p = 0.000116) both show significant effects of the individual variables surface_area and species. The ANOVA (surface_area:species p = 0.188) and multiple regression (surface_area:species p = 0.187925) both show no significant effects when comparing both surface area and species together (surface_area:species). The TukeyHSD cannot be used with this ANOVA because it does not provide group means, and is based on interactions. A TukeyHSD test is usually used as a post-hoc test for an ANOVA with group means. 
+
+
+# **Question 4:** fun with graphs
+
+Your goal is to recreate this graph:I used the graph shown on slack
+
+![Recreate the graph!](C:/Users/jbaumann/Desktop/plot_lab_3.png)
+
+Below I lay out a step by step process that can help you get to this point. You are welcome to recreate this graph however you'd like though. Make sure you answer the questions in part C after you make the graph!
+
+## a.  Make a plot that shows how buoyant weight changes across timepoints for each individual ID (aka coral fragment). Facet this by species (we have 2 coral species!). Please make your text large enough to see from distance (size=14 or larger is usually good) and rename your x and y axis variables to be more professional looking. Remove the gray background and make your graph look nice! Keep this format throughout.
+
+```{r}
+# read in github data csv - RAW DATA
+coral_belize_data_graph <- read_csv("https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/raw/main/rt_master_data.csv")
+
+# check loaded data
+coral_belize_data_graph
+
+# unique levels in 'transplant' variable
+unique_transplants <- unique(coral_belize_data_graph$transplant)
+```
+
+
+```{r}
+# plot buoyant weight across each time point for each species ID faceted by species
+coral_graph_gg <- ggplot(coral_belize_data_graph, aes(x = timepoint, y = bw)) +
+  geom_point(size = 2, alpha = 0.3, position = position_jitter(width = 0.1)) +
+  facet_wrap(~species) +
+  labs(
+    title = "Individual Buoyant Weights of Corals Across Timepoints",
+    x = "Time Point",
+    y = "Buoyant Weight (g)") +
+  theme_classic() +
+  theme(text = element_text(size = 14),  # Set text size
+    axis.title = element_text(size = 16),  # Set axis title size
+    strip.text = element_text(size = 16))  # Set facet label size)
+# view plot
+coral_graph_gg
+```
+**Do you notice any trends?**
+
+Both species' individuals mostly ranged between 0-40g for buoyant weight across every time point. I do not see any clear trends, but I can see time points T2 and T3 have more outliers and higher buoyant weights, and time points T0 and T1 have larger clusters of data points hovering around 10g-20g for buoyant weight. 
+
+## b.  If not, maybe we don't yet have enough information. Let's also add geom_point() and color them by transplant to see if there are transplant effects.
+
+```{r}
+# plot buoyant weight across each time point for each species ID faceted by species
+# add geom_point() and color by transplant treatment 
+# custom palette for each transplant treatment level trying to match to original graph photo
+my_palette1 <- c("#000089", "#DC1000", "#248721", "#720c99", "#117f83")
+
+coral_graph_gg <- ggplot(coral_belize_data_graph, aes(x = timepoint, y = bw)) +
+  geom_point(aes(color = transplant), size = 2, alpha = 0.3, position = position_jitter(width = 0.1)) +
+  facet_wrap(~species) +
+  labs(title = "Buoyant Weights of Corals Across Timepoints",
+    x = "Time Point",
+    y = "Buoyant Weight (g)", color = "Transplant Treatment") +
+  theme_classic() +
+  scale_color_manual(values = my_palette1[1:length(unique_transplants)]) +
+  theme(text = element_text(size = 14),  # Set text size
+    axis.title = element_text(size = 16),  # Set axis title size
+    strip.text = element_text(size = 16))  # Set facet label size)
+
+# view plot
+coral_graph_gg
+```
+
+**Now what do you see?**
+
+I can now see the spread of buoyant weight at each time point with each transplant treatment colored making it more informative. It is still hard to see an overall trend for each treatment type because there are a lot of points clustered around 10g-20g of buoyant weight and it is hard to tell what colors are more prevalent in those clustered parts of the graph. I can see now that there are a lot of NS native individuals in both species that are outliers and have higher buoyant weights than the majority of the other individuals at each time point. 
+
+## c. There are A LOT of data here. Let's see if we can make this clearer. Calculate mean bw by species, timepoint, and transplant. Plot those means and error terms on the graph. Connect the means with lines.
+
+
+```{r}
+# plot buoyant weight across each time point for each species ID faceted by species
+# add geom_point() and color by transplant treatment 
+# add mean + error bw by species, timepoint, and transplant treatment + connect with lines
+# custom palette for each transplant level trying to match to original graph photo
+my_palette1 <- c("#000089", "#DC1000", "#248721", "#720c99", "#117f83")
+
+# means + error
+mean_buoyant_weight <- coral_belize_data_graph %>%
+  group_by(timepoint, species, transplant) %>%
+  summarize(bw = bw, mean_bw = mean(bw), sd = sd(bw), n = n(), se = sd/sqrt(n))
+
+coral_graph_gg <- ggplot(coral_belize_data_graph, aes(x = timepoint, y = bw)) +
+  geom_point(aes(color = transplant), size = 2, alpha = 0.2, position = position_jitter(width = 0.1)) +
+    geom_line(data = mean_buoyant_weight, aes(x = timepoint, y = mean_bw, color = transplant, group = interaction(species, transplant)), size = 0.5) +
+  geom_point(data = mean_buoyant_weight, aes(x = timepoint, y = mean_bw, color = transplant), size = 2.5, shape = 16) +
+    geom_errorbar(data = mean_buoyant_weight, aes(ymin = mean_bw - se, ymax = mean_bw + se, color = transplant), width = 0) +
+  geom_line(aes(group = ID), alpha = 0.05) + 
+  facet_wrap(~species) +
+  labs(title = "Buoyant Weights of Corals Across Timepoints",
+    x = "Time Point",
+    y = "Buoyant Weight (g)", color = "Transplant Treatment") +
+  theme_classic() +
+  scale_color_manual(values = my_palette1[1:length(unique_transplants)]) +
+  theme(text = element_text(size = 14),
+    axis.title = element_text(size = 16), 
+    strip.text = element_text(size = 16))
+
+
+# view plot
+coral_graph_gg
+```
+
+**What do you see now? Are there any noticeable differences between transplant treatments? Write your final thoughts here:**
+
+Now my graphs shows error bars and means with a trendline for each transplant treatment group, so I can compare the treatment groups mean buoyant weight along the time points.The buoyant weight looks like it is mostly increasing from time point 0-3 for all treatments, and the NS native treatment has the highest mean of buoyant weight for most of the time points. The mean points and error bars look like they are overlapping in T0 and T1 for the PSTR species, and there is slightly less overlap for the SSID species. On my graph for the SSID species I could not figure out why there are missing mean points on the graph, and I could not find a way to show an error line or vertical line to the points in the legend.

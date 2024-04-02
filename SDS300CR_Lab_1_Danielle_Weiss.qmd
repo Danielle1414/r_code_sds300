@@ -1,0 +1,234 @@
+---
+title: 'Lab 1 Danielle Weiss SDS300'
+author: "Danielle Weiss"
+format:
+  html:
+    embed-resources: true
+    toc: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    self-contained: true
+editor: source
+---
+# FEEDBACK - add to notes + fix this lab: 
+	
+"Your select function is not necessarily tidy/dpylr friendly, but it does work! 
+
+You can just use select() form tidyverse instead. It's easier! But this also works, so it is fine. Come chat with me if you want to talk about WHY there is a difference. 
+
+5b. This filter step is also fine. I'd use drop_na() instead of na.omit just because na.omit() can be a little buggy. But it works! Can also use filter() or subset()
+
+Everything is correct! Good work."
+
+
+# **Part 0:** The preamble
+
+This is where you should prepare yourself for all of the work below. In other words, load all of the packages you might need to do the work you are doing below. It is generally a good idea to load data and packages at the top of an R document/script. Today we are just loading packages since reading in data is part of our tutorial.
+
+```{r}
+#Loading ALL of my necessary packages here :)
+library(readr)
+library(quarto)
+library(tidyverse)
+library(palmerpenguins)
+library(ggplot2)
+library(ggsci)
+
+```
+
+# **Part 1:** Make an Rproject for this class.
+
+```{r}
+# Made Rproject: SDS300_R_WORK.Rproj
+```
+
+Need help making a proj? Item number 3 in [This](https://jbaumann3.github.io/intro_r_for_bio_eco/getting_started.html) tutorial can help.
+
+# **Part 2:** Ensure you working directory is set correctly!
+
+## a.) Set your working directory to work nicely with your rproj (you should have done this when you setup your proj). Show me what directory you chose using code in the chunk below
+
+```{r}
+#My rproj working directory is: 
+# "C:/Users/Danie/Documents/SDS300_R_WORK_DW"
+# within this I have a folder for labs that this document is in
+setwd("C:/Users/Danie/Documents/SDS300_R_WORK_DW/labs")
+getwd()
+
+```
+
+## b.) CHANGE your working directory using a line of code (the function you want here is setwd())
+
+```{r}
+  setwd("C:/Users/Danie/Documents")
+# Warning: The working directory was changed to C:/Users/Danie/Documents
+```
+
+## c.) CHANGE your working directory using the RStudio GUI. Set it back to your preferred working directory and show me that it worked using code
+
+```{r}
+# click on files [...] go to directory
+# open desired location ["C:/Users/Danie/Documents/SDS300_R_WORK_DW/labs"]
+# click more and set as working directory
+# check that the working directory is correct
+getwd()
+# output shows wd set
+# "C:/Users/Danie/Documents/SDS300_R_WORK_DW/labs"
+
+# or can do setwd("C:/Users/Danie/Documents/SDS300_R_WORK_DW/labs")
+```
+
+# **Part 3:** Read in data!
+
+## a.) Read in data from file (csv)
+
+Go to the course moodle page and find the Labs section. Download the 'reef_life_survey_habitat.csv' file. Save it somewhere meaningful (your course rproj directory, perhaps?). Now, read it into R USING CODE (not the 'import dataset' GUI). Using read.csv() (base R) or read_csv (tidyverse) is strongly preferred. Have another method? Ask me first!
+
+```{r}
+#Reading in data from a file, naming is, and preparing it as an R object for later use 
+habitat_sds_data <- read_csv("C:/Users/Danie/Documents/SDS300_R_WORK_DW/data/reef_life_survey_habitat.csv")
+head(habitat_sds_data)
+
+
+```
+
+## b.) Read in data from a url (github, in this case)
+
+Follow [this link to my github page.](https://github.com/jbaumann3/BIOL234_Biostats_MHC) Next, find the file 'belize_coral_survey_data_2016.csv' and read that file into R using the URL. Need help with this? Try looking [here](https://jbaumann3.github.io/intro_r_for_bio_eco/rbasics.html) first, then ask me!
+
+```{r}
+#Reading in some coral survey from Justin's github to practice with!
+coral_sds_2016_data <- read_csv('https://github.com/jbaumann3/BIOL234_Biostats_MHC/raw/main/belize_coral_survey_data_2016.csv')
+
+head(coral_sds_2016_data)
+```
+
+# **5. Practice data maniuplation**
+
+## a) Using the data from my github, select columns of interest. This includes type, lat, life.history, species, and percent.of.cover (for now)
+
+```{r}
+#select columns
+ncol(coral_sds_2016_data) #23
+cols.interest.2016.coral <- coral_sds_2016_data[,c(3,4,7,8,9)] #Selecting NO specific rows and 5 columns
+head(cols.interest.2016.coral)
+ncol(cols.interest.2016.coral) #5
+
+```
+
+## b.) Filter that dataframe to include all life.history options except for NA
+
+```{r}
+#Filter the data to include life.history without NA values
+filt.cols.interest.2016.coral <- cols.interest.2016.coral %>%
+  na.omit(life.history)
+ head(filt.cols.interest.2016.coral)
+```
+
+## c.) Make a new column that contains a name for each latitude. Currently latitude (lat) is a number. Let's make it a name that aligns with a coastal town, as this is easier to understand. Lat 1 is San Pedro, Lat 2 is Belize City, Lat 3 is Dangriga, Lat 4 is Placencia, Lat 5 is Punta Gorda. There are many ways to do this. Give it a shot! I'm happy to help.
+
+```{r}
+head(filt.cols.interest.2016.coral)
+#Add a new column that assigns a name to each latitude
+# TRUE ~ as.character(lat) [keeps original value if it is not 1-5]
+# Adding coastal.town column taking lat column number 1-5 and putting corresponding "name"
+corals_interest_2016 <- (mutate(filt.cols.interest.2016.coral, coastal.town = case_when(
+          lat == 1 ~ "San Pedro",  
+          lat == 2 ~ "Belize City",
+          lat == 3 ~ "Dangriga",
+          lat == 4 ~ "Placencia",
+          lat == 5 ~ "Punta Gorda",
+                                
+            )))
+
+# check data
+head(corals_interest_2016)
+tail(corals_interest_2016) 
+corals_interest_2016
+
+# can use recode instead of case_when
+# new name <- recode(lat, 1 = "San Pedro", 2 = ......)
+
+# can use ifelse 
+# new name <- df$coastal.town <- ifelse(df$lat == 1, "San Pedro",
+# ifelse(df$lat == 2, ...................))
+                               
+```
+
+
+
+# **6.) Basic Plots**
+
+Make 3 exploratory plots in ggplot. You can manipulate data anyway you'd like. I strongly recommend avoiding bar graphs.
+
+```{r}
+# plot 1 - boxplot percent cover of coral species colored by reef type 
+    # one row omitted because it was an outlier - allows you to see the rest of the values more clearly, change y limits if you want to switch
+
+# original data: coral_sds_2016_data
+head(coral_sds_2016_data)
+
+box.corals <- ggplot(data=coral_sds_2016_data, aes(x=species, y=percent.of.cover, fill=type)) +
+geom_boxplot() + 
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = 'Coral Species', y = 'Percent Cover', title = 'Percent Cover of Coral Species, by Reef Type', fill = 'Reef Type') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1 ))
+
+
+# view plot
+box.corals
+
+```
+
+
+```{r}
+# plot 2 - boxplot percent cover of coral species in coastal town colored by life history
+    # one row omitted because it was an outlier - allows you to see the rest of the values more clearly, change y limits if you want to switch
+
+# filtered data: corals_interest_2016
+head(corals_interest_2016)
+
+coastal_plot <- ggplot(data=corals_interest_2016, aes(x=coastal.town, y=percent.of.cover, color=life.history)) + geom_boxplot() + 
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = 'Coastal Town', y = 'Corals Percent Cover', title = 'Corals Percent Cover in Coastal Towns, by Life History', color = 'Life History')
+  
+
+# view plot 
+coastal_plot
+
+```
+```{r}
+# plot 3 - scatter plot bleached level vs percent mortality colored by species
+    # one row omitted because it was an outlier - allows you to see the rest of the values more clearly, change y limits if you want to switch
+    # I was not sure exactly what the bleached column numbers 0-1 were, if they were a percentage or value, so I put "Bleaching Level"
+
+# original data: coral_sds_2016_data
+head(coral_sds_2016_data)
+
+corals_scatter_plot_data <- ggplot(data=coral_sds_2016_data, aes(x=percent.mort, y=bleached, color= species)) +
+geom_point() +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = 'Percent Mortality', y = 'Bleaching Level', title = 'Bleaching Level vs. Percent Mortality, by Species') +
+  theme_classic()
+
+# view plot
+corals_scatter_plot_data
+
+# looks like the lower % mortality there are higher and more frequent bleaching is
+
+```
+
+
+# **7.) save your dataframe to file**
+
+```{r}
+#save your dataframe to file
+write.csv(corals_interest_2016, "corals_interest_2016.csv")
+
+```
+
+# **8.) Render and turn in your html quarto doc**
+
+You can do this however works for you. You should be able to turn in a link to your html file (if you publish on Rpubs or github, for example) or you can turn in your actual html file. Ensure that is works though! IF I can't load it you will get a U (and need to revise and resubmit)

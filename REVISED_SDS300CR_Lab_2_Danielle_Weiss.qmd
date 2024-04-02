@@ -1,0 +1,357 @@
+---
+title: "REVISED_SDS300CR_Lab_2_Danielle_Weiss"
+author: "Danielle Weiss"
+format:
+  html:
+    embed-resources: true
+    toc: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    self-contained: true
+editor: source
+---
+
+
+# **Part 0:** Read in packages we need
+
+Make a code chunk below and read in any packages you may need.
+
+```{r}
+library(dplyr)
+library(tidyverse) 
+library(ggplot2) # plots
+library(ggsci) # colors
+library(palmerpenguins) # penguins data
+library(performance) # stat + model assumptions [check_model]
+library(rstatix) #test for outliers, welch_anova_test
+library(lubridate) # data and time
+``` 
+
+
+# **Part 1:** Reshape data and test the Intermediate Disturbance Hypothesis
+
+1. Read in [this data](https://github.com/jbaumann3/BIOL234_Biostats_MHC/blob/main/Ocean_Point_Data%202018.csv) from github
+```{r}
+# read in github data csv - RAW DATA
+ocean_point_data <- read_csv("https://raw.githubusercontent.com/jbaumann3/BIOL234_Biostats_MHC/main/Ocean_Point_Data%202018.csv")
+
+# check loaded data
+head(ocean_point_data)
+```
+
+2. Today we are interested in how much algal diversity is in a place given the number of grazers present. In short- is there a relationship between grazers (snail) and algae? Bare rock, carcinus, and cancer crabs columns can be dropped as we are not using them. Do this below
+```{r}
+#drop columns we don't need!
+ocean_point <- select(ocean_point_data, -c('bare_rock', 'carcinus', 'Cancer crabs'))
+
+# check new data
+head(ocean_point)
+```
+
+
+3. The data are survey data from the rocky intertidal in coastal Maine. Students worked at a transect (trans_description) in different years (year), they measured how high they were above (or below) the low tide line (tidal_ht), those numerical tide heights were converted into a ranked list to make bins (tidal_height_cat_number, 1-8 or so), and then students recorded either the percent of 2D area that was covered by a thing (if it was something that didn't move) OR how many individuals of a thing they saw (if a crab or snail or something). This abundance or cover data is in columnar form by species (or category) in the remaining columns. This works nicely when we are recording data on a clipboard in the field. BUT, R wants all of those names in 1 column and all of those numbers in a second column. We can use pivot_longer to convert this dataframe to long format. 
+
+Pivot the data to long format - one column for names and one for values
+```{r}
+# pivot wide to long 
+ocean_point_long <- (ocean_point %>%
+  pivot_longer(cols = calothr:nucella, 
+               names_to = 'species', 
+               values_to = 'abundance_or_cover'))
+
+# check new data
+head(ocean_point_long)
+```
+
+
+4. Make a new column to tell us if value = %cover or abundance. The grazers (animals) are counted in abundance and the algaes (everything else) are % cover. You may also want to make an algae vs grazer column. Do this below: 
+
+removed these:
+bare_rock 
+Cancer crabs
+carnicus
+
+species being used:
+tectura abundance
+litt_lit abundance
+litt_obt abundance
+litt_sax abundance
+nucella abundance
+algae % cover
+mytilus % cover - animal 
+semibal % cover - animal
+
+```{r}
+# make new column
+ocean_point_long$measurement_type <- ifelse(ocean_point_long$species == "tectura" | ocean_point_long$species == "litt_lit" | ocean_point_long$species == "litt_obt" | ocean_point_long$species == "litt_sax" | ocean_point_long$species == "nucella", "abundance", "%cover")
+
+# check new data
+head(ocean_point_long)
+ocean_point_long
+```
+
+5. We are interested in a visual that assess the intermediate disturbance hypothesis, which states that there is some middle range of disturbance (grazing in this case) that leads to the most DIVERSE algal ecosystem. Calculate total grazer count and total algal diversity for each tidal height cat num. 
+```{r}
+# get rid of mytilus + semibal 
+ocean_points_long <- ocean_point_long %>% filter(!(tolower(species) %in% c('mytilus', 'semibal')))
+
+# make sure they are removed
+ocean_points_long
+
+# total grazer count for each tidal height group - only include abundance data - grazers only 
+# abundance_or_cover - numerical values of abundance # or %cover 
+grazer_counts <- ocean_points_long %>%
+  filter(measurement_type == "abundance") %>%
+  group_by(tidal_ht_cat_num) %>%
+  summarize(total_grazer_count = sum(abundance_or_cover))
+
+# total algal diversity for each tidal height group - only include % cover data - all algae species - exclude species with 0% cover (not present)
+algal_diversity <- ocean_points_long %>%
+  filter(measurement_type == "%cover" & abundance_or_cover > 0) %>%
+  group_by(tidal_ht_cat_num) %>%
+  summarize(total_algal_diversity = n_distinct(species))
+
+# check new data
+grazer_counts
+algal_diversity
+
+# combine dataframes to include algal_diversity and grazer_counts
+gzcount_algdiv <- full_join(grazer_counts, algal_diversity, by = "tidal_ht_cat_num")
+
+# check new data 
+gzcount_algdiv
+```
+
+6. Graph to visually assess the IDH-- grazer abundance on the X and algal diversity on the y!
+What trends do you see? Do you see any evidence for the IDH? Why or why not?
+```{r}
+# make plot to assess IDH hypothesis
+idh_plot_div_abun <- ggplot(gzcount_algdiv, aes(x = total_grazer_count, y = total_algal_diversity, color = factor(tidal_ht_cat_num))) +
+  geom_point() +
+  geom_line(color = "black") +
+  labs(x = "Grazer Abundance", y = "Algal Diversity") +
+  ggtitle("Algal Diversity in Response to Grazer Abundance") +
+  theme_classic() + 
+  scale_y_continuous(breaks = seq(0, max(gzcount_algdiv$total_algal_diversity), 1))
+
+# view plot
+idh_plot_div_abun
+
+# Trends in IDH graph 
+# there are 4 points at (0,1) with 0 grazers and 1 algal species
+# there is no clear pattern or parabola in this relationship of algal diversity vs. grazer abundance
+# algal diversity ranged from 1-10 out of the 19 algal species surveyed 
+# some tidal heights had no grazers present, and still had low algal diversity - the dominant algal species could have taken over space through competition? 
+```
+
+
+# **Part 2**: dplyr/tidyverse pipelines and ANOVA
+
+1. Read in [this coral cover data](https://github.com/jbaumann3/BIOL234_Biostats_MHC/blob/main/coralcover.csv) from github.
+
+In the following chunk, starting with the raw data from github, build a dplyr/tidyverse pipeline that calculates mean coral cover by reef type. Don't forget to calculate a relevant and useful error term for plotting
+```{r}
+# read in github data csv - RAW DATA
+coral_cov_data <- read_csv('https://github.com/jbaumann3/BIOL234_Biostats_MHC/raw/main/coralcover.csv')
+
+# check data
+head(coral_cov_data)
+
+# pipeline for mean coral cover BY reef type 
+# mean cc_percent + type 
+# use standard error - SE
+mean_coralcover_reef <- coral_cov_data %>%
+  group_by(type) %>%
+  summarize(mean_coralcover = mean(cc_percent), 
+            sd = sd(cc_percent), n = n(), se = sd/sqrt(n))
+
+# view data 
+mean_coralcover_reef
+  
+```
+
+2.Make a visual that allows us to assess the following Null Hypothesis: 
+There is no difference in coral cover by reef type.
+You should make a graph that shows relevant means, error bars, and raw data
+
+```{r}
+# raw data points = geom_jitter [coral_cov_data]
+# mean coral cover by reef type = geom_point [mean_coralcover_reef]
+# SE = geom_errorbar -> measure spread  [standard error of mean coral cover] [mean_coralcover_reef] [raw data points behind means + SE]
+# set y limit to 35 to zoom in -> cutting off 1 outlier
+coralcover_reeftype <- ggplot()+
+  geom_jitter(data = coral_cov_data, aes(x = type, y = cc_percent, color = type), alpha = 0.5, width = 0.2) +
+  geom_point(data = mean_coralcover_reef, aes(x = type, y = mean_coralcover, color = type), size = 3) + 
+  geom_errorbar(data = mean_coralcover_reef, aes(x = type, ymin = mean_coralcover - se, ymax = mean_coralcover + se), width = 0.1) +
+  labs( x = "Reef Type", y = "Mean Coral Cover (%)", color = "Reef Type") + 
+  ggtitle("Mean Coral Cover of Reef Types") + 
+  theme_bw() +   
+  scale_y_continuous(limits = c(0, 35))
+
+# view graph
+coralcover_reeftype
+# patch reef + black reef error bars overlap 
+# no reef overlaps with nearshore 
+```
+
+3. Run the correct statistical test to accompany the plot above. This should be a One-Way ANOVA + TukeyHSD test. Run these below AND interpret them. What do you see evidence for? Do we reject or fail to reject the null?
+
+```{r}
+# One-Way ANOVA
+anova_coral_cov <- aov(cc_percent ~ type, data = coral_cov_data)
+
+# view results
+anova_coral_cov
+# may have unbalanced effects
+summary(anova_coral_cov)
+# Pr(>F) = 0.00215 suggests significant differences within means of groups - need TukeyHSD to see which groups are / are not significantly different from one another 
+
+# significance = need post-hoc test (tukey) = what groups are different than other groups
+# TukeyHSD test
+tukey_coral_cov <- TukeyHSD(anova_coral_cov)
+
+# view results
+tukey_coral_cov
+# p adj values < 0.05 for Nearshore-Back Reef [0.0072335] and Patch Reef-Nearshore [0.0027941] means these groups have significantly different coral covers from one another [nearshore and black reef are significantly different in coral cover + nearshore and patch reef are significantly different in coral cover] 
+# p adj value > 0.05 for Patch Reef-Back Reef [0.9393628] means that patch reef and black reef coral covers are not significantly different 
+
+# Null Hypothesis: There is no difference in coral cover by reef type
+# we have evidence [explained above] that we should reject the null hypothesis because there are significant differences in coral cover by reef type in 2/3 of these reef type groups
+```
+*Revision*
+4. Load the penguins data from the palmerpenguins package. Do a two-way ANOVA to assess the effects of species and binary assigned sex at birth (aka the 'sex' column here) on beak length. This should be an interactive two-way ANOVA (Y~X*Z). Make a graph and run the stats. Assess the result using the following H0: "There is no effect of sex or species and there is no interaction between sex and species on penguin beak length"
+
+```{r}
+# data 
+head(penguins)
+
+# 2 way ANOVA
+# y ~ x * z [x and z = independent variables | y = dependent variable]
+penguinz <- drop_na(penguins)
+penguin_aov1 <- aov(bill_length_mm ~ species * sex, data = penguinz)
+summary(penguin_aov1)
+
+# check model assumptions
+check_model(penguin_aov1)
+
+# graph: means + error bars (SEM or CI)
+# calculate a mean bill length + SEM for penguins by species and sex
+beak_lengths_m <- penguinz %>%
+  group_by(species, sex) %>%
+  summarize(meanbeak = mean(bill_length_mm), sd = sd(bill_length_mm), n = n(), se = sd/sqrt(n)) 
+
+beak_lengths_m
+
+# graph means and SEM 
+pen_plot <- ggplot(data = beak_lengths_m, aes(x = species, y = meanbeak, color=sex)) +
+    geom_jitter(data = penguinz, aes(x = species, y = bill_length_mm, color = sex), alpha = 0.5, width = 0.2)+ # raw data
+  geom_point(data = beak_lengths_m, aes(x = species, y = meanbeak, color = sex), size = 3) + # averages
+  geom_errorbar(data = beak_lengths_m, aes(x = species, ymin = meanbeak-se, ymax = meanbeak + se),color = "black", width = 0.1) + 
+  labs( x = "Species", y = "Mean Beak Length", color = "Sex") + 
+  ggtitle("Mean Beak Lengths of Penguin Species by Sex") +
+  theme_classic()
+
+# view plot 
+pen_plot
+```
+*Revision*
+4. Stats
+
+```{r}
+# summary of interactive 2 way ANOVA
+summary(penguin_aov1)
+
+# Null Hypothesis: "There is no effect of sex or species and there is no interaction between sex and species on penguin beak length"
+# there is a significant effect of sex on penguin beak length [Pr(>F) = <2e-16 ***]
+# there is a significant effect of penguin species on beak length [Pr(>F) = <2e-16 ***]
+# there is no significant interaction between sex and species on penguin beak length [Pr(>F) = 0.103]
+
+# TukeyHSD to compare means of beak length based on penguin species or sex
+TukeyHSD(penguin_aov1)
+
+# Null Hypothesis: "There is no effect of sex or species and there is no interaction between sex and species on penguin beak length"
+# $species
+# there is a significant effect of penguin species on beak length for all 3 species interactions
+  # Chinstrap-Adelie p-adj = 0.0000000
+  # Gentoo-Adelie p-adj = 0.0000000
+  # Gentoo-Chinstrap p-adj = 0.0010847
+# $sex - male-female 
+# there is a significant effect of penguin sex on beak length
+  # p-adj = 0.0
+# $`species:sex`
+# there is 1 instance of no significant interaction between sex and species on penguin beak length
+  # Gentoo:female-Chinstrap:female -> p-adj = 0.3338130
+  # for female Gentoo and Chinstrap species, there is overlap in the mean error bars     and the p-adj value from the raw data TukeyHSD is 0.33 showing there is no significant difference in beak lengths of female Gentoo and female Chinstrap penguin species
+# $`species:sex`
+# there is a significant interaction between sex and species on penguin beak length 
+  # all other 'species:sex' p-adj values are < 0.05, with no overlapping error bars, so there is a significant difference in beak lengths for these species and sex interactions
+
+```
+
+
+# **Part 3:** Time series data!
+
+Generally speaking, R has a tough time dealing with time formatting. This is a common issue in programming. There are special data formats called Datetime that we can use to work through this. 
+
+1. Read in [this time series data](https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/blob/main/temperature%20and%20light/RT_in_situ_temp.csv) from github
+```{r}
+# read in github data csv - RAW DATA
+temp_light_data <- read_csv("https://github.com/jbaumann3/Belize-RT-Baumann-et-al-2021/raw/main/temperature%20and%20light/RT_in_situ_temp.csv")
+
+# check loaded data
+head(temp_light_data)
+temp_light_data
+```
+These data are from an experiment I did recently on coral reefs in Belize. You should see temperature data from 2 sites across a range of dates. 
+
+2. Make a new column the combines the date and time into 1 column, name that column datetime
+
+```{r}
+# date time formatting [need to run entire script or else NAs come up in Date and datetime]
+# convert date column to date format
+# combine date and time columns 
+temp_light_data <- temp_light_data %>%
+  mutate(Date = mdy(Date),
+  datetime = ymd_hms(paste(Date, as.character(`Time (GMT)`))))
+
+# look at new datetime column in dataset
+head(temp_light_data)
+# datetime format now = 2017-12-11 15:00:00
+
+str(temp_light_data)
+```
+
+3. Using functions from the lubridate package (a lifesaver!), convert that column to datetime format
+```{r}
+# I used lubridate package functions to combine date and time into a datetime column [ymd_hms] in question 2, I hope that works for this question
+
+# I used the lubridate package within question 2: datetime = ymd_hms(paste(Date, as.character(`Time (GMT)`)))
+
+# I followed along the date and time tutorial on your intro to biology and ecology site
+```
+
+4. Make a time series plot of temperature that shows temp (or light) on y and datetime on x. Color by site
+```{r}
+# time series plot [ x = datetime + y = temp + color by site]
+ggplot(temp_light_data, aes(x = datetime, y = temp, color = site)) +
+  geom_line() +
+  labs(x = "Datetime", y = "Temperature", color = "Site", title = "Temperature Time Series by Site") +
+  theme_classic() 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
