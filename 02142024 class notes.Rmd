@@ -1,0 +1,102 @@
+---
+title: "02142024 Class Notes"
+author: "Danielle Weiss"
+date: "2024-02-14"
+output: html_document
+---
+
+Class notes:
+
+Random: 
+%>% or |>
+drop_na() to not include NA data
+
+In RStudio under tools -> Options -> Appearance you can change the color of your R console and also change the fonts
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Read in github data csv - RAW DATA
+coral_cov_data <- read_csv('https://github.com/jbaumann3/BIOL234_Biostats_MHC/raw/main/coralcover.csv')
+
+github: 
+go to link 
+hover Raw on data and copy link address to copy into the code above 
+use newname <- read_csv('link.link') 
+
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Intermediate Disturbance Hypothesis:
+
+Goldilock zone of disturbance
+Too much + too little disturbance is BAD - for species + ecosystems 
+Most diversity = parabola (most species diversity in goldilock zone)
+X = disturbance 
+Y = species diversity 
+PEAK = certain disturbance has highest diversity 
+
+High Diversity = 
+[high function + structure + high functional redundancy {organisms - different species do similar THINGS/TASKS - so if some species die, other species can take its place} + RESILIENCE] 
+[NOT a monoculture]
+[change over time always happens]
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Long vs. Wide Formats:
+Do we see IDH in your graph?
+
+Wide Format Data = time series  
+multiple times in row 
+sites in rows 
+species = columns 
+
+Long Format Data = dplyr
+pivot_longer()
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Graphs: 
+
+ANOVA: 
+compares group means + variance of groups
+X = groups 
+Y = numerical 
+CENTER = 
+SPREAD = geom_point() or geom_jitter() [mean + or - SEM] 
+  mean + or - CI + or - SE
+  {SEM - variance of full population} 
+  {don't use SD - use SEM standard error of the mean}
+  95% CI confidence interval {if means to not overlap - they are sig. differences}
+MEAN = mean - line 
+SE = error bars
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Time Series: 
+
+! hates dates ! 
+lubridate 
+read_csv should read in as date / time 
+
+geon_line() makes line graph 
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+| means or
+If df includes "these words" do this "thing"
+if false - make it % cover
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+packages: 
+library(dplyr)
+library(tidyverse) 
+library(ggplot2) # plots
+library(ggsci) # colors
+library(patchwork)  #to panel our graphs
+library(performance) #check stat/model assumptions
+library(see)
+library(rstatix) #test for outliers, welch_anova_test
+library(car) #levenes test
+library(readr)
+library(tidyr)

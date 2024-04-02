@@ -1,0 +1,174 @@
+---
+title: "02282024 Notes"
+author: "Danielle"
+date: "2024-02-28"
+output: html_document
+---
+
+Lab 2 materials: 
+
+IDH - intermediate disturbance hypothesis
+- should be parabola (diversity of species on y and grazers on x)
+  - x = grazers = causing disturbance 
+  - we want to know grazer counts + algal diversity of species (# of unique species)
+  - code example for grazer example in lab 2:
+idh_plot_div_abun <- ggplot(gzcount_algdiv, aes(x = total_grazer_count, y = total_algal_diversity, color = factor(tidal_ht_cat_num))) +
+  geom_point() +
+  geom_line(color = "black") +
+  labs(x = "Grazer Abundance", y = "Algal Diversity") +
+  ggtitle("Algal Diversity in Response to Grazer Abundance") +
+  theme_classic() + 
+  scale_y_continuous(breaks = seq(0, max(gzcount_algdiv$total_algal_diversity), 1)) 
+
+- ANOVA = analysis of variance 
+  - p < or > 0.05 = we need SE and means on plot (SE is better visual than SD) 
+  - make graphs pretty - easy to read + no gray background 
+
+- Pr(>F) = 0.00215 suggests significant differences within means of groups - need TukeyHSD to see which groups are / are not significantly different from one another 
+
+- F value over 1 = large count 
+- p < 0.05 possible sig. difference (run tukey on this anova)
+
+- significance = need post-hoc test (tukey) = what groups are different than other groups
+
+- tukeyHSD test
+  - Looking at species effects
+  - tells you mean responses of groups/species (difference of y values between groups)
+
+Lab 3 materials: 
+- multiple regression
+- am I doing modeling selection (testing assumptions)? 
+
+Lab 4 materials: 
+- mixed modeling 
+- complicated regression (lm(y ~ x + a + b.....)) 
+  - we cannot graph all together - we need complex model 
+  - mixed effects modeling
+    - 
+  - Some fixed variables 
+  - Some random variables
+  - ex. measuring coral diversity (response variable)
+        - explanatory variables 
+            - FIXED effects: that we have planned for + designed experiment for + effects everything in a reliable/predictable way  
+            - FIXED (ammonia, sediment, population density)
+            - FIXED: variable we are interested in + effects all populations + all observations + all groups in a fixed and measurable way
+            - testing the effect ON
+            
+            - RANDOM: variable we are not interested in + not planned... BUT this variable may efffect outcome
+            - didn't design experiment to test them 
+            - researcher effect - different ways people analyze data 
+            - random error 
+            - location effect 
+            - genotype (if wer do not fully understand differences)
+            - difficult error terms
+            
+    - FIXED + RANDOM = mixes effects modeling
+    - lme4 package 
+      - lmer() is function we use (not nlme package, but lme4 package)
+      - requires at least 1 fixed and 1 random effect (if not, using lm())
+      - top down modeling = looks at all effects 
+      - can start from nothing + work your way up (lab 4 do this)
+      
+    
+lm() = simple linear regression - lab 4 not using this 
+
+mixed effects models: 
+library(lme4) = mixed effects model 
+  - do not focus on p-values
+  
+  - lmer() function 
+ #5!!! - Tidy does not work for lmer 
+        - use parameters :: model_parameters(modelname) to get CIs + then graph 
+        - code given will not work here 
+  - mode parameters to get this 
+  - 95% CI from a model - p 7 of paper Baumann 2021
+    - intercept model - base case of model 
+    - compare how all others have effects 
+    - if CI is below 0 = negatve effect
+    - 2 disturbances at once - bad 
+    - maybe positive effect - only positive data - HII human influence 
+        
+  - use numbers to compare then choose best model
+  - requires random effect for lmer() 
+  - need fixed and random 
+lm1 <- lmer(y ~ x * z..... + (1|randomeffect), data = .....)
+
+COLORS:
+# bring up colors to create color palette
+# library("colorspace")
+# pal <- choose_palette()
+# custom_colorz <- choose_palette(colorpalette1)
+# custom_colorz(4)
+
+Model selection goals: 
+1. build model that tests your hypotheses (if not, do it again)
+2. make most complex model that addresses #1 AND is statistically valid (does not violate too many assumptions)
+- start from complex or start with simple
+- add another variable at a time
+
+! Assumptions that CANNOT be violated: 
+- Independence: cannot test this with stats - need to know exp. designs + knowledge of system - sometimes you won't know 
+    - make each row one observation 
+
+! that SHOULD NOT be violated: 
+- multi colinearity of explanatory variables (if variables explaining response are colinear - this is an issue)
+  - does a or x cause it (xvy yva xva)
+  - correlation is not causation 
+  - 2 variables with exact same effect - we cannot analyze.....
+    - drop a term!!! 
+    - interaction may be causing colinearity (* then + then just x then just a -> if you get to last step then choose 1 with bigger significance)
+
+! that are hopefully not violated but can be with large enough sample size: 
+- homogeneity of model 
+- normality of residuals 
+
+Example: 
+Imer1 <- Imer(recovery.rate - recovery_time _ region + disturbance + ......)
+
+read summary table: 
+formula 
+residuals
+random effects - can calculate variance from fixed + random effects - don't have to do this 
+
+fixed effects - no p-value 
+  - t-value: further from 0 or 1, good signal to noise ratio - high t-value 
+  !!! - coefficient plot 95%CI to see results 
+  - value for estimate compare to SE 
+  - estimate > abs. value SE = probably has effect 
+  - more than 2 SE from 0, almost positive it has effect 
+  
+Final project: 
+group: Leah Harries + Lorelei Ing 
+  
+
+
+
+xxxxxxxxxxxxxxxxxxxxxx
+
+# R BASIC NOTES
+
+#check for any NAS 
+colSums(is.na(data))
+
+unique(data$Species)
+
+# SPELLING ERRORS:
+  # use mutate and recode 'before name' = "after name"
+data <- data %>% mutate(Species= recode(Species, `Littorina saxatilis ` = "Littorina saxatilis"))
+
+# SAVE NEW CSV:
+  # dataframe you want to turn into new csv, then "csvname.csv"
+    write.csv(data, "newLS.csv")
+ 
+   
+library(devtools)   
+devtools::install_github("r-dbi/odbc")
+  
+  
+  
+  
+  
+  
+  
+  
+  

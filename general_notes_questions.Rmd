@@ -1,0 +1,88 @@
+---
+title: "Notes_Questions"
+output: html_notebook
+---
+
+-----------------------------------------------------------------------------------------
+In quarto document: 
+# in front of text - makes it a title [different numbers of # = different sizes]
+*text* makes it italicized 
+**text** makes it bold 
+
+Turn Quarto into html file 
+
+render file
+  turn in as PDF or HTML link [self contained]
+
+links
+  general r and tidyverse:
+  https://jbaumann3.github.io/intro_r_for_bio_eco/intro_tidyverse.html
+  
+R notes SDS300
+    
+    ggplot graphs
+      x = category 
+      y = numerical 
+      include: SD, Mean, error
+      measure of center + spread
+      
+      boxplot 
+      anova or linear regression to analyze differences between x-categories 
+      t-test only if you have 2 categories 
+    
+    
+    adding column + renaming different latitudes (numbers): mutate() + case_when
+      corals_interest_2016 <- (mutate(filt.cols.interest.2016.coral, coastal.town =             
+      case_when(
+          lat == 1 ~ "San Pedro",  
+          lat == 2 ~ "Belize City",
+          lat == 3 ~ "Dangriga",
+          lat == 4 ~ "Placencia",
+          lat == 5 ~ "Punta Gorda",
+            )))
+            
+    adding column + renaming different latitudes (numbers): mutate() same + recode()
+     new name <- recode(lat, 1 = "San Pedro", 2 = ......)
+     adding column: ifelse()  
+    
+    adding column + renaming different latitudes (numbers): mutate() same + ifelse()
+      new name <- df$coastal.town <- ifelse(df$lat == 1, "San Pedro",
+      ifelse(df$lat == 2, ...................))    
+  
+  
+  remove gray + grids = themeclassic()
+  
+  always change to / when copying address from files on PC
+  setwd("C:/Users/Danie/Documents/SDS300_R_WORK_DW") 
+  getwd() to check that wd is correct 
+
+  manually change wd: on GUI [graphical user interface]
+    click on files [...] go to directory
+    open desired location 
+    click more and set as working directory
+    check that the working directory is correct
+    getwd()
+    
+  SDS300_R_WORK.Rproj [open and all files will show in files window of Rstudio]
+  
+  copy file link on github 
+  click file - right click on raw - copy file link address
+  
+ggplot
+  example: ggplot(data=penguins, aes(x=species, y= bill_length_mm)) 
+  
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

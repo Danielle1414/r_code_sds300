@@ -1,0 +1,39 @@
+---
+title: "02052024_Class_Notes"
+output: html_notebook
+---
+
+X, Y numerical data: 
+Scatterplot 
+Geom_point() + geom_smooth (methods = “lm”) 
+geom_smooth(method = "lm")  # Add smooth line with linear regression method
+THEN line of code for analysis 
+Slope + Y intercept 
+R^2 (close to 1 = strong relationship) 
+P-value 
+
+Populations to compare: 
+X = categorical
+Y = response variable
+BOXPLOT
+Middle line = median 
+ALSO mean if we have a norm distribution (bell curve) 
+Box = middle 50% interquartile range 
+Lines – up and down to farthest point that isn’t outliers 
+
+Simplify: DOTPLOT  
+Lines of means + dots of raw data around it
+Center + spread
+Group by n categories
+Df2 <- df1 %?%
+Group_by(n sample names) 
+Summarize(…….) 
+Analyze with anova or complicated linear model 
+
+When graphing mean – need S.E. or S.D. or 95% CI 
+95% CI is BEST then SE then SD
+P-vaue of 0.05 = 83.5% CI
+Need bootstrap to get this or have large n (sample size)
+
+
+---

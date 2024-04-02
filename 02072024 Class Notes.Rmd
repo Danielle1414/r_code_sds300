@@ -1,0 +1,35 @@
+---
+title: "02072024 Class"
+author: "Danielle Weiss"
+date: "2024-02-07"
+output: html_document
+---
+
+Categories + numerical response variable [population]
+ANOVA in R: aov(Y~X, data = df) [can add more variables]
+  can do aov1 <- aov(Y~group, data = df) # EACH SAMPLE as a row + USE RAW DATA
+  then do TukeyHSD(aov1) # TukeyHSD of the new dataframe 
+TukeyHSD() 
+  groups ABC + error bars [is there effect of group on Y]
+  
+
+Categorical + error bars: don't use barplots 
+
+Boxplot 
+
+Scatter plot of raw data WITH means + error [not always RAW data because it can be messy]
+
+STATS: 
+T-test only 2 groups
+
+Numerical variables: 
+  simple linear regression - use lm() 
+  lm(y~x, data = df)
+  can get R^2 + P + Y int + Slope
+  
+ALWAYS check code: 
+head()
+tail() 
+str()
+  
+  
