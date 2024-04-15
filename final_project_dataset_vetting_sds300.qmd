@@ -1,10 +1,7 @@
 ---
-title: "final_project_dataset_vetting_sds300"
-author: "Leah Harries + Lorelei Ing + Destiny Cecchi + Danielle Weiss"
-format:
-  html:
-    embed-resources: true
-    toc: true
+title: "final_project_dataviz_sds300"
+format: html
+editor: visual
 ---
 
 ```{r}
@@ -13,39 +10,38 @@ format:
  library(tidyverse)
  library(dplyr)
 ```
+```{r}
+# What are the trends in carbonate chemistry within each region and in comparison to each region?
+# Compare carbonate chemistry variables over time  in each region
+# do map 
 
-```         
-Final Project Part 4: 
-- datasets
-- methods (where did data come from + how was it collected + sources)
-- show it contains data to test the research questions
-- how to test for the research questions
 ```
 
-``` default
-Data set vetting answers:
 
-Research questions + goals: 
-- How does ocean chemistry affect hard coral cover in the Florida keys? 
-  - Analyze the relationship between ocean chemistry (pH, temperature, aragonite saturation) and the abundance of hard coral cover in 3 regions of Florida Keys (Florida Keys, Tortugas, SEFCRI)
-- How does hard coral cover vary over time within the Florida Keys?
-  - Compare hard coral cover over time in Florida Keys (not split into region)
-- How does hard coral cover vary over time in each region of interest?
-  - Compare hard coral cover over time within each region and in comparison to each region
-- How does hard coral cover of specific species change over time within each region and in comparison to each region?
-  - Compare hard coral cover of species observed over time in each region  
-- What are the trends in carbonate chemistry within each region and in comparison to each region?
-  - Compare carbonate chemistry variables over time  in each region 
+```{r}
+# Data set vetting answers:
 
-Datasets:
-- Our benthic coral data and carbonate chemistry has the variables we want to analyze (all between 2016-2022)
-- Benthic coral data - focused on hard corals for now
-  - regions (FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative))
-    - observations: DRT (1264) FLK (820) SEFCRI (276) 
-  - species (COVER_CAT_NAME)
-    - filtered down to hard coral species with n>20 (18 species)
-  - hard coral cover percentage (HARDBOTTOM_P)
-- Carbonate chemistry data - focused on pH + Temp + Aragonite saturation
+# Research questions + goals: 
+# - How does ocean chemistry affect hard coral cover in the Florida keys? 
+#   - Analyze the relationship between ocean chemistry (pH, temperature, aragonite saturation) and the abundance of hard coral cover in 3 regions of Florida Keys (Florida Keys, Tortugas, SEFCRI)
+# - How does hard coral cover vary over time within the Florida Keys?
+#   - Compare hard coral cover over time in Florida Keys (not split into region)
+# - How does hard coral cover vary over time in each region of interest?
+# - Compare hard coral cover over time within each region and in comparison to each region
+# - How does hard coral cover of specific species change over time within each region and in comparison to each region?
+# - Compare hard coral cover of species observed over time in each region  
+# - What are the trends in carbonate chemistry within each region and in comparison to each region?
+# - Compare carbonate chemistry variables over time  in each region 
+
+# Datasets:
+# - Our benthic coral data and carbonate chemistry has the variables we want to analyze (all between 2016-2022)
+# - Benthic coral data - focused on hard corals for now
+#   - regions (FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative))
+#     - observations: DRT (1264) FLK (820) SEFCRI (276) 
+#   - species (COVER_CAT_NAME)
+#     - filtered down to hard coral species with n>20 (18 species)
+#   - hard coral cover percentage (HARDBOTTOM_P)
+# - Carbonate chemistry data - focused on pH + Temp + Aragonite saturation
   - FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative)
   - observations: DRT (158) FLK (2222) SEFCRI (48) 
   - filtered down to: time, latitude, longitude, Region, Year, DIC, pH_measured, pH_calculated, pCO2, Aragonite_Sat, Temperature_C
@@ -65,7 +61,75 @@ Statistical Analysis: analyze BOTH datasets
 - 95% CI for different mixed models  
 - PCoA?
 
-Dataset information:
+- Dataset information:
+We are using two data sets: CRCP carbonate chemistry and CRCP Benthic cover and
+both of these data are sourced from NOAA (National Oceanic and Atmospheric
+Administration). The carbonate chemistry data set contains different
+measurements taken at long-term monitoring sites in the Atlantic by NOAA NCRMP
+(National Coral Reef Monitoring Program) and includes variables like dissolved
+inorganic carbon, total alkalinity, and other carbonate chemistry related
+measurements. Monitoring sites included locations in the US Virgin Islands (St.
+Croix, St. John, and St. Thomas), the Florida Keys, Puerto Rico, Flower Garden
+Banks (Texas),  and Dry Tortugas (Florida). Water samples for carbonate
+chemistry analysis were collected in two ways: active sampling done by SCUBA
+divers during research excursions at monitoring sites and using sub automatic
+water samplers, which took samples at 15 meters deep. The samples were brought
+back to the lab and analyzed to get TA and DIC, which is combined with
+temperature, depth, and salinity to inform other important carbonate chemistry
+variables (e.g. pH, aragonite saturation, pCO2– all of which are also reported
+in the data set). 
+The benthic monitoring data also comes out of surveys done by NCRMP to assess
+reef health throughout Florida and data is collected in two ways: Benthic
+# -Assessment and the Coral Demographic. The Benthic Assessment gives an estimate of cover types that are considered ecologically important, which contains groups like macroalgae, crustose coralline algae, san, coral, etc.,. Data from these surveys are collected by divers at randomly selected transects at each site and surveys were collected at 30 meters deep. The goal of which is to understand percent cover of benthic species, rugosity at each location, assess ecologically important invertebrates (e.g. urchins, lobster, queen conch etc.,), and assess presence and absence of ESA listed corals. For the Coral
+Demographic method, surveys were measured by 10m x 1m belt transects that were
+placed at random reef habitats. These surveys report information on species
+such as density, size, abundance, diversity, and condition (e.g. live vs dead,
+bleaching, diseased etc.,). 
+```
+
+# Data set vetting answers:
+
+# Research questions + goals: 
+# - How does ocean chemistry affect hard coral cover in the Florida keys? 
+#   - Analyze the relationship between ocean chemistry (pH, temperature, aragonite saturation) and the abundance of hard coral cover in 3 regions of Florida Keys (Florida Keys, Tortugas, SEFCRI)
+# - How does hard coral cover vary over time within the Florida Keys?
+#   - Compare hard coral cover over time in Florida Keys (not split into region)
+# - How does hard coral cover vary over time in each region of interest?
+# - Compare hard coral cover over time within each region and in comparison to each region
+# - How does hard coral cover of specific species change over time within each region and in comparison to each region?
+  - Compare hard coral cover of species observed over time in each region  
+# - What are the trends in carbonate chemistry within each region and in comparison to each region?
+# - Compare carbonate chemistry variables over time  in each region 
+
+# Datasets:
+# - Our benthic coral data and carbonate chemistry has the variables we want to analyze (all between 2016-2022)
+# - Benthic coral data - focused on hard corals for now
+#   - regions (FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative))
+#     - observations: DRT (1264) FLK (820) SEFCRI (276) 
+#   - species (COVER_CAT_NAME)
+#     - filtered down to hard coral species with n>20 (18 species)
+#   - hard coral cover percentage (HARDBOTTOM_P)
+# - Carbonate chemistry data - focused on pH + Temp + Aragonite saturation
+  - FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative)
+  - observations: DRT (158) FLK (2222) SEFCRI (48) 
+  - filtered down to: time, latitude, longitude, Region, Year, DIC, pH_measured, pH_calculated, pCO2, Aragonite_Sat, Temperature_C
+
+Visualizations: 
+- Map of ΩAr, temperature, and pH across Florida Keys (start with ΩAr and maybe the other two)
+- Changes in % hard coral cover over time at each region and overall
+- Changes in aragonite saturation, temperature, and pH against coral cover 
+
+Statistical Analysis: analyze BOTH datasets
+- Check variability
+- Model selection  
+- Different sites species diversity or coral cover over time (ANOVA)
+- Different sites coral cover over time looking at different chemistry variables (ANOVA)
+- Compare carbonate chemistry with (mixed modeling)
+- Compare coral and algal cover with (mixed modeling)
+- 95% CI for different mixed models  
+- PCoA?
+
+- Dataset information:
 We are using two data sets: CRCP carbonate chemistry and CRCP Benthic cover and
 both of these data are sourced from NOAA (National Oceanic and Atmospheric
 Administration). The carbonate chemistry data set contains different
@@ -95,99 +159,77 @@ etc.,), and assess presence and absence of ESA listed corals. For the Coral
 Demographic method, surveys were measured by 10m x 1m belt transects that were
 placed at random reef habitats. These surveys report information on species
 such as density, size, abundance, diversity, and condition (e.g. live vs dead,
-bleaching, diseased etc.,). 
-```
+bleaching, diseased etc.,).
 
 ```{r}
 # filter data 
 
 # coral florida data
-coral <- read.csv("C:/Users/Danie/Documents/SDS300_R_WORK_DW/final_proj/benthic_coral_florida.csv") |>
+coral <- benthic_coral_florida |>
   mutate(REGION = recode(REGION, `Tortugas` = "DRT"))
 
 # view data
-head(coral) 
+coral 
 summary(coral)
 
-# species with >20 data points 
+# create location abbreviations
+# filter data by region
+
+# carbonate chemistry data
+carb1 <- carbonate_chem_atlantic |>
+  mutate(Region = recode(Region, `FL` = "FLK", `DRTO` = "DRT", `DT` = "DRT")) |>
+  filter(Region %in% c("FLK", "DRT", "SEFCRI"))
+
+# view data
+carb1
+summary(carb1)
+
+# coral species with more than 20 data points 
 count_species <- coral |>
   group_by(COVER_CAT_NAME)|>
   summarise(n = n(),
             count = n())|>
   arrange(desc(count))
-count_species
 
 coral1 <- coral |>
   group_by(COVER_CAT_NAME)|>
   filter(n()>20) |>
   filter(!is.na(COVER_CAT_NAME))
-head(coral1)
 
-# filter down to only hard corals with >20 data points (18 hard coral species)
 coral1 <- coral1 |>
-  filter(COVER_CAT_NAME %in% c("Acropora cervicornis", "Agaricia agaricites", "Colpophyllia natans", "Dichocoenia stokesii", "Diploria labyrinthiformis", "Madracis decactis", "Meandrina meandrites", "Montastraea cavernosa", "Orbicella annularis", "Orbicella faveolata", "Orbicella franksi", "Porites astreoides", "Porites porites", "Siderastrea radians ", "Siderastrea siderea", "Solenastrea bournoni", "Stephanocoenia intersepta", "Pseudodiploria strigosa"))
+  filter(COVER_CAT_NAME %in% c("Acropora cervicornis", "Agaricia agaricites", "Cliona spp", "Colpophyllia natans", "Dichocoenia stokesii", "Dictyota spp", "Diploria labyrinthiformis", "Encrusting gorgonian", "Gorgonians", "Madracis decactis", "Meandrina meandrites", "Montastraea cavernosa", "Orbicella annularis", "Orbicella faveolata", "Orbicella franksi", "Palythoa spp", "Porites astreoides", "Porites porites", "Siderastrea radians ", "Siderastrea siderea", "Solenastrea bournoni", "Stephanocoenia intersepta", "Pseudodiploria strigosa"))
 
 # view data
-head(coral1)
-# 2360 observations for all hard coral species included
-# locations = FLK (florida keys) DRT (tortugas) and SEFCRI (south east florida coral reef initiative)
-count_location <- coral1 |>
-  group_by(REGION) |>
-  summarise(count = n())
-count_location
-# observations: DRT (1264) FLK (820) SEFCRI (276) 
-```
-
-``` default
-Hard corals n > 20: 
-Acropora cervicornis
-Agaricia agaricites
-Colpophyllia natans
-Dichocoenia stokesii
-Diploria labyrinthiformis
-Madracis decactis
-Meandrina meandrites
-Montastraea cavernosa
-Orbicella annularis
-Orbicella faveolata
-Orbicella franksi
-Porites astreoides
-Porites porites
-Siderastrea radians
-Siderastrea siderea
-Solenastrea bournoni
-Stephanocoenia intersepta
-Pseudodiploria strigosa
+coral1
+# 5625 observations for all species included
 ```
 
 ```{r}
-# carbonate chemistry data
-# create location abbreviations + filter data by region
-carb1 <- read.csv("C:/Users/Danie/Documents/SDS300_R_WORK_DW/final_proj/carbonate_chem_atlantic.csv") |>
-  mutate(Region = recode(Region, `FL` = "FLK", `DRTO` = "DRT", `DT` = "DRT")) |>
-  filter(Region %in% c("FLK", "DRT", "SEFCRI"))
+# carbonate data
 
 # view data
-head(carb1)
+carb1
 summary(carb1)
 
 # select columns
   carb1 <- carb1 |>
   select(time, latitude, longitude, Region, Year, DIC, pH_measured, pH_calculated, pCO2, Aragonite_Sat, Temperature_C)
-head(carb1)
+carb1
 
 # factor -> numeric
 carb1$Temperature_C = as.numeric(carb1$Temperature_C)
 
-# summary stats looking at data in each region
+# summary stats
 ds_chem <- carb1 |>
   group_by(Region, na.rm = TRUE) |>
   summarise(n = n(),
             mean_PH = mean(pH_measured, na.rm=TRUE),
             mean_Temp = mean(Temperature_C, na.rm=TRUE),
             mean_AS = mean(Aragonite_Sat, na.rm=TRUE))
-head(ds_chem)
+ds_chem
+```
 
+```{r}
 # 2016-2022
 # summary stats looking at data in each year + region
 ds2_chem <- carb1 |>
@@ -196,5 +238,27 @@ ds2_chem <- carb1 |>
             mean_PH = mean(pH_measured, na.rm=TRUE),
             mean_Temp = mean(Temperature_C, na.rm=TRUE),
             mean_AS = mean(Aragonite_Sat, na.rm=TRUE))
-head(ds2_chem)
 ```
+
+
+
+```{r}
+need to join data: rbind or cbind - needs to be in the right shape - gridded raster - sites in a "box" - use radius or nearest neighbor principle 
+  
+coral cover ~ Ar pH Temp separately 
+
+coral cover ~ Ar pH Temp together to see effects ? Maybe just Ar and pH
+
+life history across groups (LHS + Ar pH Temp separately)
+
+find best model: * can go to + if it needs to 
+CC ~ temp * Ar * pH * LHS + region + (random effect)
+  need random effect: 1 / site name or subregion 
+```
+
+```{r}
+# Joining data: Ar + Temp + pH + Coral Cover 
+
+# extract pH 
+```
+
